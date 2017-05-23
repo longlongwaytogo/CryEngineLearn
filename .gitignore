@@ -30,3 +30,10 @@
 *.exe
 *.out
 *.app
+*.log
+*.dmp
+Solutions
+logbackups
+/bin
+user
+Backup

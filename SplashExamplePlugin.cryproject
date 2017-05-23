@@ -1,0 +1,18 @@
+
+
+{
+	"content": {
+		"assets": [
+			"Assets"
+		],
+		"code": [
+			"Code_UI"
+		]
+	},
+	"info" : {
+		"name": "Splash Example Plugin"
+	},
+	"require": {
+		"engine": "engine-5.3"
+	}
+}
