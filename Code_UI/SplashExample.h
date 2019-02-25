@@ -95,6 +95,7 @@ public:
 
 	//! Only used to TryConstruct()
 	bool Initialize(SSystemGlobalEnvironment& env, const SSystemInitParams& initParams);
+	void OnUpdate(int updateType);
 
 	~CSplashExample();
 };

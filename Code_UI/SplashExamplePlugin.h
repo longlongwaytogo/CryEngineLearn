@@ -25,7 +25,7 @@ public:
 	virtual const char* GetName() const override { return "Splash Example Plugin"; }
 	virtual const char* GetCategory() const override { return "Game"; }
 	virtual bool Initialize(SSystemGlobalEnvironment& env, const SSystemInitParams& initParams) override;
-	virtual void OnPluginUpdate(EPluginUpdateType updateType) override {}
+	virtual void OnPluginUpdate(EPluginUpdateType updateType) override;
 	// ~ICryPlugin
 
 	CPlugin_SplashExample();

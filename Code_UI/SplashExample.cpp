@@ -9,6 +9,8 @@
 #include <CryInput/IHardwareMouse.h>
 #include <CryGame/IGameFramework.h>
 #include <IPlayerProfiles.h>
+#include <CrySystem/ICryPlugin.h>
+
 
 // TODO:
 // 
@@ -218,7 +220,7 @@ void CSplashExample::Draw2DImage(const ITexture * pTex, bool bUseTextureSize) co
 				RenderHeight = min(TextureHeight, RenderHeight);
 			}
 
-			gEnv->pRenderer->SetViewport(0, 0, RenderWidth, RenderHeight);
+		//	gEnv->pRenderer->SetViewport(0, 0, RenderWidth, RenderHeight);
 
 			float fScaledW = RenderWidth / (float(RenderWidth) / 800.0f);
 			float fScaledH = RenderHeight / (float(RenderHeight) / 600.0f);
@@ -227,7 +229,7 @@ void CSplashExample::Draw2DImage(const ITexture * pTex, bool bUseTextureSize) co
 			for (size_t n = 0; n < 3; n++)
 			{
 				gEnv->pRenderer->SetCullMode(R_CULL_NONE);
-				gEnv->pRenderer->SetState(GS_BLSRC_SRCALPHA | GS_BLDST_ONEMINUSSRCALPHA | GS_NODEPTHTEST);
+				gEnv->pRenderer->SetState(GS_BLSRC_SRCALPHA | GS_BLDST_ONEMINUSSRCALPHA /*| GS_NODEPTHTEST*/);
 				gEnv->pRenderer->Draw2dImageStretchMode(true);
 				gEnv->pRenderer->Draw2dImage(PosX, PosY, fScaledW, fScaledH, pTex->GetTextureID(), 0.0f, 1.0f, 1.0f, 0.0f);
 				gEnv->pRenderer->Draw2dImageStretchMode(false);
@@ -273,11 +275,11 @@ bool CSplashExample::DrawAndStall(float StartTime, float LengthTime, ITexture * 
 
 			// Render the splash image
 			gEnv->pGameFramework->ManualFrameUpdate(true, 1);
-			gEnv->pRenderer->ClearTargetsImmediately(FRT_CLEAR_COLOR);
-			gEnv->pRenderer->BeginFrame();
+			//gEnv->pRenderer->ClearTargetsImmediately(FRT_CLEAR_COLOR);
+			//gEnv->pRenderer->BeginFrame();
 			Draw2DImage(pTex, bUseTextureSize); // Our overlay texture (can have alpha which is why we need background color)
-			if (bDrawConsole) gEnv->pConsole->Draw(); // Allow drawing of console while we stall
-			gEnv->pRenderer->EndFrame();
+			//if (bDrawConsole) gEnv->pConsole->Draw(); // Allow drawing of console while we stall
+			//gEnv->pRenderer->EndFrame();
 
 			//CCryAction::GetCryAction()->ManualFrameUpdate(true,0);
 			//CCryAction::m_pThis->ManualFrameUpdate(true, 0);
@@ -407,6 +409,12 @@ void CSplashExample::SetScreenResolution(const SScreenResolution &res) const
 ///////////////////////////////////////////////////////////////////////////
 void CSplashExample::OnSystemEvent(ESystemEvent event, UINT_PTR wparam, UINT_PTR lparam)
 {
+	////! Sent before object/texture precache stream requests are submitted.
+	//ESYSTEM_EVENT_LEVEL_PRECACHE_FIRST_FRAME,
+
+	//	//! Sent when level loading is completely finished with no more onscreen movie or info rendering, and when actual gameplay can start.
+	//	ESYSTEM_EVENT_LEVEL_GAMEPLAY_START,
+
 	// Construct at the earliest opportunity
 	// * This is a safe-guard if the plugins object construction
 	// * is moved before other systems have initialized.
@@ -450,7 +458,7 @@ void CSplashExample::OnSystemEvent(ESystemEvent event, UINT_PTR wparam, UINT_PTR
 		if (m_pInitialSplashTexture)
 		{
 			CRY_LOG_DEBUG("SplashExamplePlugin: Stalling thread for initial splash");
-			if (!DrawAndStall(gEnv->pTimer->GetAsyncCurTime(), m_sCVars->m_fInitialSplashPlaybackTime, m_pInitialSplashTexture, true)) break;
+			//if (!DrawAndStall(gEnv->pTimer->GetAsyncCurTime(), m_sCVars->m_fInitialSplashPlaybackTime, m_pInitialSplashTexture, true)) break;
 		}
 
 		// GAMESDK/PROFILE SUPPORT //
@@ -508,7 +516,7 @@ void CSplashExample::OnSystemEvent(ESystemEvent event, UINT_PTR wparam, UINT_PTR
 
 	// Third stage, Keep rendering splash image, and delay further loading until minimum playback time is achieved.
 	case ESYSTEM_EVENT_GAME_POST_INIT_DONE:
-	//case ESYSTEM_EVENT_LEVEL_GAMEPLAY_START:
+		//case ESYSTEM_EVENT_LEVEL_GAMEPLAY_START:
 	{
 		if (m_pSplashTexture)
 		{
@@ -526,11 +534,24 @@ void CSplashExample::OnSystemEvent(ESystemEvent event, UINT_PTR wparam, UINT_PTR
 			CRY_LOG_DEBUG("SplashExamplePlugin: Stalling thread for splash, (start=%s,Length=%s)", CryStringUtils::toString(StartTime), CryStringUtils::toString(LengthTime));
 
 			// Stall the engine if we havn't shown our splash for enough time!
-			DrawAndStall(StartTime, LengthTime, m_pSplashTexture, false);
+		//	DrawAndStall(StartTime, LengthTime, m_pSplashTexture, false);
 		}
 
 		// Show cursor
 		gEnv->pSystem->GetIHardwareMouse()->Hide(false);
+
+
+		// Make sure we dont use this tex again!
+		if (m_pSplashTexture) m_pSplashTexture->Release();
+		m_pSplashTexture = nullptr;
+
+		CRY_LOG_DEBUG("SplashExamplePlugin: End of splash example");
+
+		break;
+	}
+	case ESYSTEM_EVENT_GAME_RESUMED:
+	{ // game is running
+		gEnv->pLog->Log("ESYSTEM_EVENT_GAME_RESUME at splashExample");
 
 		// We're done, de-register our system event handler
 		if (m_bListenerRegistered)
@@ -540,12 +561,22 @@ void CSplashExample::OnSystemEvent(ESystemEvent event, UINT_PTR wparam, UINT_PTR
 
 			CRY_LOG_DEBUG("SplashExamplePlugin: Unregistered system listener");
 		}
-
-		// Make sure we dont use this tex again!
-		if (m_pSplashTexture) m_pSplashTexture->Release();
-		m_pSplashTexture = nullptr;
-
-		CRY_LOG_DEBUG("SplashExamplePlugin: End of splash example");
+	//	m_pInitialSplashTexture = false;
+		break; 
 	}
+	}
+}
+
+void CSplashExample::OnUpdate(int updateType)
+{
+	if (updateType == IPluginUpdateListener::EUpdateType_Update)
+	{
+		// update:
+		if (m_pInitialSplashTexture)
+		{
+			Draw2DImage(m_pInitialSplashTexture, true);
+			gEnv->pLog->Log("draw2dImage at frame:%d", gEnv->nMainFrameID);
+		}
+
 	}
 }

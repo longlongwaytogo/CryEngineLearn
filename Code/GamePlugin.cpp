@@ -28,6 +28,7 @@ bool CGamePlugin::Initialize(SSystemGlobalEnvironment& env, const SSystemInitPar
 
 void CGamePlugin::OnSystemEvent(ESystemEvent event, UINT_PTR wparam, UINT_PTR lparam)
 {
+	gEnv->pLog->Log("SystemEvent:%d at frame:%d", event,gEnv->nMainFrameID);
 	switch (event)
 	{
 	case ESYSTEM_EVENT_GAME_POST_INIT:
@@ -45,8 +46,14 @@ void CGamePlugin::OnSystemEvent(ESystemEvent event, UINT_PTR wparam, UINT_PTR lp
 			{
 				gEnv->pConsole->ExecuteString("map example", false, true);
 			}
+			break;
+
 		}
-		break;
+		case ESYSTEM_EVENT_GAME_RESUMED:
+		{
+			gEnv->pLog->Log("ESYSTEM_EVENT_GAME_RESUMED");
+			break;
+		}
 	}
 }
 

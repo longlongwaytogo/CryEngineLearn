@@ -37,9 +37,19 @@ CPlugin_SplashExample::~CPlugin_SplashExample()
 //! ICryPlugin override
 bool CPlugin_SplashExample::Initialize(SSystemGlobalEnvironment& env, const SSystemInitParams& initParams)
 {
+	SetUpdateFlags(EUpdateType_Update); // setting update flag
 	if (m_pSplashExample)
 		return m_pSplashExample->Initialize(env, initParams);
 	return false;
+}
+void CPlugin_SplashExample::OnPluginUpdate(EPluginUpdateType updateType)
+{
+	
+	if (updateType == EUpdateType_Update)
+	{
+		if (m_pSplashExample)
+			m_pSplashExample->OnUpdate(updateType);
+	}
 }
 
 CRYREGISTER_SINGLETON_CLASS(CPlugin_SplashExample)

@@ -10,7 +10,7 @@
 
 #include <CryRenderer/IRenderAuxGeom.h>
 
-
+#include <IUIDraw.h>
 
 #include "CrySystem/ISystem.h"
 #include "CryRenderer/IRenderer.h"
@@ -79,6 +79,7 @@ CPlayer::CPlayer()
 	: m_pInput(nullptr)
 	, m_pMovement(nullptr)
 	, m_pView(nullptr)
+	, m_pTexture(nullptr)
 {
 }
 
@@ -104,6 +105,7 @@ IMPLEMENT_RMI(CPlayer, DoRequestDoSomething)
 
 bool CPlayer::Init(IGameObject *pGameObject)
 {
+	m_pTexture = gEnv->pRenderer->EF_LoadTexture("I:\\co\\CryEngineLearn.git\\Assets\\SplashExample\\textures\\splash_new.tif", FT_DONT_STREAM | FT_NOMIPS);
 	SetGameObject(pGameObject);
 	// test lobby
 	{
@@ -198,6 +200,7 @@ void CPlayer::PostInit(IGameObject *pGameObject)
 
 void CPlayer::ProcessEvent(SEntityEvent& event)
 {
+	gEnv->pLog->Log("EventID:%d at frame:%d", event.event, gEnv->nMainFrameID);
 	switch (event.event)
 	{
 		case ENTITY_EVENT_RESET:
@@ -224,8 +227,18 @@ void CPlayer::SetHealth(float health)
 
 void CPlayer::Update(SEntityUpdateContext& ctx, int updateSlot)
 {
-
+ 
 	gEnv->pRenderer->GetIRenderAuxGeom()->DrawSphere(GetEntity()->GetPos() + GetEntity()->GetForwardDir()*1.52, 0.3, ColorB(0x00, 0xff, 0x00, 0xff), false);
+	if (m_pTexture)
+	{
+		/*gEnv->pRenderer->SetState(GS_BLSRC_SRCALPHA | GS_BLDST_ONEMINUSSRCALPHA | GS_NODEPTHTEST);
+		IUIDraw * pDraw = gEnv->pGameFramework->GetIUIDraw();
+		pDraw->PreRender();
+		gEnv->pRenderer->Draw2dImage(0.f, 0.f, 1024, 576, m_pTexture->GetTextureID());
+		pDraw->PostRender();*/
+		gEnv->pRenderer->Push2dImage(0, 0, 1024, 576,m_pTexture->GetTextureID());
+		gEnv->pRenderer->Draw2dImage(0.f, 0.f, 1024, 576, m_pTexture->GetTextureID());
 
+	}
 
 }

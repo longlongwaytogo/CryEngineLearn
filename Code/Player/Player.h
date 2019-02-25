@@ -76,4 +76,5 @@ protected:
 	CPlayerInput *m_pInput;
 	CPlayerMovement *m_pMovement;
 	CPlayerView *m_pView;
+	ITexture	*m_pTexture;
 };
